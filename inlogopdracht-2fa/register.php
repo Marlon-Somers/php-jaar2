@@ -6,31 +6,40 @@ session_start();
 $dsn ='mysql:host=localhost;dbname=login2fa';
 $user = 'root';
 $pass = '';
+$options = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false];
 
+include 'GoogleAuthenticator.php';
 
-use PHPGangsta\PHPGangsta_GoogleAuthenticator;
+use PHPGangsta\GoogleAuthenticator;
+
 
 
 $ga = new GoogleAuthenticator();
 $qrCodeUrl = '';
 $secret = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'post'){
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST'){
+    echo "test";
+
     $username = $_POST['username'];
 
-    $password = password_hash(password: $_POST['password'], algo: PASSWORD_DEFAULT);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    $secret = $g->createSecret();
+    $secret = $ga->createSecret();
+
+// verbind met de database
+$pdo = new PDO($dsn, $user, $pass, $options);
+
+ // voeg de gebruiker toe aan de database
+$stmt = $pdo->prepare('INSERT INTO users (username, password, 2fa_secret) VALUES (?, ?, ?)');
+$stmt->execute([$username, $password, $secret]);
 
 
-$pdo = new PDO(dsm: $dsm, username: $user, password: $pass, options: $options);
-
-$stmt = $pdo->prepare(query: 'INSERT INTO users (username, password, 2fa_secret) VALUES (?,?, ?)');
-
-$stmt->exacute(params: [$username, $password, $secret]);
-
-
-    $sqrCodeUrl = $ga->getQRCodeGoogleUrl('MARLON de coolste', $secret);
+    $qrCodeUrl = $ga->getQRCodeGoogleUrl('MARLON de coolste', $secret);
 
 }
 ?>
@@ -44,13 +53,13 @@ $stmt->exacute(params: [$username, $password, $secret]);
 </head>
 <body>
     <H1>Register</H1>
-    <from method="post">
+    <form method="post">
     <label for="username">Username</label>
     <input type="text" name="username" id="username">
     <label for="password">Password</label>
     <input type="password" name="password" id="password">
     <button type="submit">Register</button>
-    </from>
+    </form>
 
  <!-- Maak een if functie die alleen verder als er een QR code is gegenereerd. -->
  <?php if ($qrCodeUrl): ?>

@@ -11,10 +11,10 @@
  */
 /*class PHPGangsta_GoogleAuthenticator
 */
+namespace PHPGangsta;
 
-{
-    namespace PHPGangsta;
-    
+class GoogleAuthenticator{
+
 
     protected $_codeLength = 6;
 
